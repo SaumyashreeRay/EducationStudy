@@ -1,10 +1,19 @@
+import pandas as pd 
 import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 def load_dataset(filename):
     #TODO: Load dataset. Return a N x d dataset of features to learn from. 
-    return tfd.Beta([.5]*3,[.5]*3).sample(1000)
+    data = pd.read_csv("alldata.csv")
+    data_frame = data
+    data_frame = data_frame.drop('Year', axis=1)
+    data_frame = data_frame.drop('Region/Country/Area', axis=1)
+    data_frame.fillna(0, inplace=True)
+
+    features=data_frame.iloc[:, :].values
+    return features
+    # return tfd.Beta([.5]*3,[.5]*3).sample(1000)
 
 def train(dataset, k=3, epochs=1000, learn_prior=False, print_step=10):
     """

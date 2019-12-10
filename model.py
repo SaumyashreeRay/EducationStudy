@@ -6,14 +6,13 @@ tfd = tfp.distributions
 def load_dataset(filename):
     #TODO: Load dataset. Return a N x d dataset of features to learn from. 
     data = pd.read_csv("alldata.csv")
-    data_frame = data
     data_frame = data_frame.drop('Year', axis=1)
     data_frame = data_frame.drop('Region/Country/Area', axis=1)
     data_frame.fillna(0, inplace=True)
 
     features=data_frame.iloc[:, :].values
     return features
-    # return tfd.Beta([.5]*3,[.5]*3).sample(1000)
+    # return tfd.Beta([.5]*3,[.5]*3).sample(10)
 
 def train(dataset, k=3, epochs=1000, learn_prior=False, print_step=10):
     """
@@ -38,8 +37,6 @@ def train(dataset, k=3, epochs=1000, learn_prior=False, print_step=10):
                     )
                 )
 
-    print(model(None))
-                
     optimizer = tf.keras.optimizers.Adam()
 
     @tf.function
@@ -59,6 +56,16 @@ def train(dataset, k=3, epochs=1000, learn_prior=False, print_step=10):
     print('Done training') 
     return model
 
+def log_post(dataset, model):
+
+    log_cat = tf.math.log(model(None).mixture_distribution.probs)[tf.newaxis,:]
+    log_dem = model(None).log_prob(dataset)[:,tf.newaxis]
+    log_lik = model(None).components_distribution.log_prob(dataset[:,tf.newaxis,:])
+
+    log_post = log_cat - log_dem + log_lik
+
+    return log_post
+
 def test(dataset, model):
     """
     Returns model's test metrics.
@@ -67,9 +74,10 @@ def test(dataset, model):
     model: Trained Tensorflow Probability model
     """
     #TODO: Compute p-value and clustering graphs.
-    return model(None).log_prob(dataset) 
+    MAP = tf.argmax(log_post(dataset, model),1)
+    return MAP  
 
 def main():
     dataset = load_dataset(None)
     train_model = train(dataset)
-    print(test(dataset,train_model))
+    MAP = test(dataset, train_model) 

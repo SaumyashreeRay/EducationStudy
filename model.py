@@ -17,9 +17,14 @@ def load_dataset(year='None'):
         data_frame = data_frame.loc[data_frame['Year'] == year]
     # print(data_frame.shape)
     
-    cols = ['Population mid-year estimates (millions)', "Students enrolled in primary education (thousands)", "Students enrolled in secondary education (thousands)",'Students enrolled in tertiary education (thousands)']
+    cols = ["GDP per capita (US dollars)","GDP in current prices (millions of US dollars)",'Population mid-year estimates (millions)', "Students enrolled in primary education (thousands)", "Students enrolled in secondary education (thousands)",'Students enrolled in tertiary education (thousands)']
     data_frame[cols] = data_frame[cols].replace({',': ''}, regex=True)
     data_frame[cols] = data_frame[cols].astype(float)
+
+    country = data_frame.loc[:,"Region/Country/Area"].to_numpy()
+    gdp_per_capita = data_frame.loc[:,"GDP per capita (US dollars)"].values
+    gdp_curr = data_frame.loc[:,"GDP in current prices (millions of US dollars)"].values
+    percent_exp = data_frame.loc[:,"Public expenditure on education (% of GDP)"].values
     
     train_df = data_frame.loc[:,'Population mid-year estimates (millions)':"Students enrolled in tertiary education (thousands)"]
     # print(train_df.head())
@@ -28,7 +33,7 @@ def load_dataset(year='None'):
     train_df['% tertiary'] = (train_df.iloc[:,3]/train_df.iloc[:,0])*0.001
     # print(train_df.head())
     features=train_df.iloc[:, 4:7].values
-    return features
+    return features,country,gdp_per_capita,gdp_curr,percent_exp
     # return tfd.Beta([.5]*3,[.5]*3).sample(10)
 
 def train(dataset, k=3, epochs=1000, learn_prior=False, print_step=10):
@@ -95,8 +100,7 @@ def test(dataset, model):
     return MAP  
 
 def main():
-    dataset = load_dataset(2010)
-    # print("dataset size",dataset.size)
+    feat, country, gdp_per_capita, gdp_curr, percent_exp = load_dataset(2010)
     train_model = train(dataset)
     MAP = test(dataset, train_model) 
 

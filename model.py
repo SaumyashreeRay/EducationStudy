@@ -3,14 +3,31 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 
-def load_dataset(filename):
-    #TODO: Load dataset. Return a N x d dataset of features to learn from. 
+def load_dataset(year='None'):
+    #TODO:Return a N x d dataset of features to learn from and other features for plotting as well. 
+    # If year is None, then return all the data; else only return data corresponding to that year
     data = pd.read_csv("alldata.csv")
-    data_frame = data_frame.drop('Year', axis=1)
-    data_frame = data_frame.drop('Region/Country/Area', axis=1)
-    data_frame.fillna(0, inplace=True)
+    # data_frame = data_frame.drop('Year', axis=1)
+    # data_frame = data_frame.drop('Region/Country/Area', axis=1)
+    # data_frame.fillna(0, inplace=True)
+    data_frame = data
 
-    features=data_frame.iloc[:, :].values
+    data_frame.fillna(0, inplace=True)
+    if year is not 'None':
+        data_frame = data_frame.loc[data_frame['Year'] == year]
+    # print(data_frame.shape)
+    
+    cols = ['Population mid-year estimates (millions)', "Students enrolled in primary education (thousands)", "Students enrolled in secondary education (thousands)",'Students enrolled in tertiary education (thousands)']
+    data_frame[cols] = data_frame[cols].replace({',': ''}, regex=True)
+    data_frame[cols] = data_frame[cols].astype(float)
+    
+    train_df = data_frame.loc[:,'Population mid-year estimates (millions)':"Students enrolled in tertiary education (thousands)"]
+    # print(train_df.head())
+    train_df['% primary'] = (train_df.iloc[:,1]/train_df.iloc[:,0])*0.001
+    train_df['% secondary'] = (train_df.iloc[:,2]/train_df.iloc[:,0])*0.001
+    train_df['% tertiary'] = (train_df.iloc[:,3]/train_df.iloc[:,0])*0.001
+    # print(train_df.head())
+    features=train_df.iloc[:, 4:7].values
     return features
     # return tfd.Beta([.5]*3,[.5]*3).sample(10)
 
@@ -78,6 +95,10 @@ def test(dataset, model):
     return MAP  
 
 def main():
-    dataset = load_dataset(None)
+    dataset = load_dataset(2010)
+    # print("dataset size",dataset.size)
     train_model = train(dataset)
     MAP = test(dataset, train_model) 
+
+if __name__ == "__main__":
+    main()

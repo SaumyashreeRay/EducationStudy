@@ -1,4 +1,7 @@
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd 
+import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
@@ -88,7 +91,7 @@ def log_post(dataset, model):
 
     return log_post
 
-def test(dataset, model):
+def test(feat, country ,gdp_per_capita, gdp_curr, percent_exp, model):
     """
     Returns model's test metrics.
 
@@ -96,13 +99,28 @@ def test(dataset, model):
     model: Trained Tensorflow Probability model
     """
     #TODO: Compute p-value and clustering graphs.
-    MAP = tf.argmax(log_post(dataset, model),1)
+    MAP = tf.argmax(log_post(feat, model),1)
+    
+    # Plotting
+    cluster_assign = np.random.randint(0,2,size=gdp_per_capita.size)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    scatter = ax.scatter(gdp_per_capita,gdp_curr,percent_exp, marker="s", c=cluster_assign, s=50, cmap="viridis")
+    # ax.legend()
+    legend1 = ax.legend(*scatter.legend_elements(), loc="upper right", title="Classes")
+    plt.xlabel('GDP_per_Capita (in Dollars)')
+    plt.ylabel('GDP_curr (in Millions)')
+    plt.title("Percent Expenditure on Education vs GDP")
+    # Change the next line to plt.show() if you want the plot to show up
+    plt.savefig("3dplot_with_legend_and_labels_viridis.png")#bbox_inches='tight'
+
     return MAP  
 
 def main():
     feat, country, gdp_per_capita, gdp_curr, percent_exp = load_dataset(2010)
-    train_model = train(dataset)
-    MAP = test(dataset, train_model) 
+    # Changed dataset to feat (training feratures, %prim,secon,tert enrollment)
+    train_model = train(feat)
+    MAP = test(feat, country, gdp_per_capita, gdp_curr, percent_exp, train_model) 
 
 if __name__ == "__main__":
     main()

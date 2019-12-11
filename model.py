@@ -1,4 +1,6 @@
 import pandas as pd 
+import numpy as np
+import scipy.stats as stats
 import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
@@ -62,9 +64,28 @@ def log_post(dataset, model):
     log_dem = model(None).log_prob(dataset)[:,tf.newaxis]
     log_lik = model(None).components_distribution.log_prob(dataset[:,tf.newaxis,:])
 
-    log_post = log_cat - log_dem + log_lik
+    return log_cat - log_dem + log_lik
 
-    return log_post
+def ptest(x, k, MAP, limits):
+    """
+    Computes p-values for each cluster and each difference between limits.
+    
+    Args:
+    x: Values
+    k: Number of classes.
+    MAP: Cluster assignment for values.
+    limits: List of thresholds.
+    """
+    assert k==len(limits)-1
+    p_val = np.zeros([k,limits-1])    
+    for k in range(k):
+        for i in range(len(limits-1)):
+            total_class = np.sum(limits[i]<=x<=limits[i+1]]))
+            total_cluster = np.sum(limits[i]<=x[MAP==k]<=limits[i+1]])
+            rv = stats.hypergeom(len(MAP),total_class,np.sum(MAP==k))
+            p_val[k,i] = 1-rv.cdf(total_cluster)
+
+    return p_val
 
 def test(dataset, model):
     """
@@ -75,6 +96,8 @@ def test(dataset, model):
     """
     #TODO: Compute p-value and clustering graphs.
     MAP = tf.argmax(log_post(dataset, model),1)
+    # k = len(model(None).mixture_distribution.probs)
+    # ptest(dataset_[None], k, MAP, )
     return MAP  
 
 def main():

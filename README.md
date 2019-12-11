@@ -1,4 +1,4 @@
-# EducationStudy
-Public Education Levels and Spending:  A Correlation Study
+# Public Education Levels and Spending:  A Correlation Study
+
 
 Countries prioritize national expenditure in various sectors of citizen issues based upon evaluations that judge the impact and value of such public funding. Education is one such sector that shapes citizens’ short- and long-term self development and societal contribution and upon which public spending exerts significant influence by determining educational access and resources for a national government’s constituents. Along these lines, this work evaluates the correlation between public expenditure on education and educational enrollment levels across low, middle, and high income countries. We implement clustering via a latent variable model upon data provided by the United Nations with the hypothesis that countries with greater public funding for education experience higher enrollment rates. Our results support this hypothesis.
